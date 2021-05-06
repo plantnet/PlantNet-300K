@@ -1,0 +1,8 @@
+name: plantnet_300k_env
+channels:
+  - pytorch
+dependencies:
+  - tqdm
+  - pytorch
+  - torchvision
+
