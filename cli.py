@@ -13,8 +13,6 @@ def add_all_parsers(parser):
 
 def _add_loss_parser(parser):
     group_loss = parser.add_argument_group('Loss parameters')
-    group_loss.add_argument('--k', type=int, help='value of k for computing the topk loss and calculating topk accuracy',
-                            default=3)
     group_loss.add_argument('--mu', type=float, default=0., help='weight decay parameter')
 
 
@@ -23,6 +21,8 @@ def _add_training_parser(parser):
     group_training.add_argument('--lr', type=float, help='learning rate to use')
     group_training.add_argument('--batch_size', type=int, default=256, help='default is 256')
     group_training.add_argument('--n_epochs', type=int)
+    group_training.add_argument('--k', nargs='+', help='value of k for computing the topk loss and calculating topk accuracy',
+                                required=True, type=int)
 
 
 def _add_model_parser(parser):
@@ -38,7 +38,7 @@ def _add_hardware_parser(parser):
 
 def _add_dataset_parser(parser):
     group_dataset = parser.add_argument_group('Dataset parameters')
-    group_dataset.add_argument('--size_image', type=int, default=128,
+    group_dataset.add_argument('--size_image', type=int, default=256,
                                help='size you want to resize the images to')
 
 

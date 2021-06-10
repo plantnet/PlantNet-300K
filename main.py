@@ -40,6 +40,8 @@ def train(args):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
+    print('args.k : ', args.k)
+
     lmbda_best_acc = None
 
     for epoch in tqdm(range(args.n_epochs), desc='epoch', position=0):
@@ -72,8 +74,9 @@ def train(args):
         print(f'epoch {epoch} took {time.time()-t:.2f}')
         print(f'loss_epoch_train : {loss_epoch_train}')
         print(f'loss_epoch_val : {loss_epoch_val}')
-        print(f'train accuracy : {epoch_accuracy_train} / train top_{args.k} accuracy : {epoch_top_k_accuracy_train}')
-        print(f'val accuracy : {epoch_accuracy_val} / val top_{args.k} accuracy : {epoch_top_k_accuracy_val} / val average_{args.k} accuracy : {epoch_average_k_accuracy_val}')
+        print(f'train accuracy : {epoch_accuracy_train} / train top_k accuracy : {epoch_top_k_accuracy_train}')
+        print(f'val accuracy : {epoch_accuracy_val} / val top_k accuracy : {epoch_top_k_accuracy_val} / '
+              f'val average_k accuracy : {epoch_average_k_accuracy_val}')
 
     # load weights corresponding to best val accuracy and evaluate on test
     load_model(model, os.path.join(save_dir, save_name + '_weights_best_acc.tar'), args.use_gpu)
@@ -87,11 +90,11 @@ def train(args):
     results = {'loss_train': loss_train, 'train_accuracy': train_accuracy, 'topk_train_accuracy': topk_train_accuracy,
                'loss_val': loss_val, 'val_accuracy': val_accuracy, 'topk_val_accuracy': topk_val_accuracy,
                'average_k_val_accuracy': average_k_val_accuracy,
-               'test_results': {'best_val_accuracy': {'loss': loss_test_ba,
-                                                      'accuracy': accuracy_test_ba,
-                                                      'topk-accuracy': top_k_accuracy_test_ba,
-                                                      'averagek-accuracy': average_k_accuracy_test_ba}
-                                }, 'params': args.__dict__}
+               'test_results': {'loss': loss_test_ba,
+                                'accuracy': accuracy_test_ba,
+                                'topk-accuracy': top_k_accuracy_test_ba,
+                                'averagek-accuracy': average_k_accuracy_test_ba},
+               'params': args.__dict__}
 
     with open(os.path.join(save_dir, save_name + '.pkl'), 'wb') as f:
         pickle.dump(results, f)

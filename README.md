@@ -16,7 +16,7 @@ If you have installed anaconda, you can run the following command :
 
 In order to train a model on the PlantNet-300K dataset, run the following command :
 
-```python main.py --lr=0.05 --n_epochs=80 --model=resnet50 --root=path_to_data --save_name_xp=xp1```
+```python main.py --lr=0.05 --n_epochs=80 --k 1 3 5 10 --model=resnet50 --root=path_to_data --save_name_xp=xp1```
 
  You must provide in the "root" option the path to the train val and test folders. 
  The "save_name_xp" option is the name of the directory where the weights of the model and the results (metrics) will be stored.
