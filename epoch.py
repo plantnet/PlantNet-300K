@@ -14,8 +14,6 @@ def train_epoch(model, optimizer, train_loader, criteria, loss_train, train_accu
     n_correct_top_k_train = defaultdict(int)
     epoch_top_k_accuracy_train = {}
     for batch_idx, (batch_x_train, batch_y_train) in enumerate(tqdm(train_loader, desc='train', position=0)):
-        if batch_idx == 3:
-            break
         if use_gpu:
             batch_x_train, batch_y_train = batch_x_train.cuda(), batch_y_train.cuda()
         optimizer.zero_grad()
