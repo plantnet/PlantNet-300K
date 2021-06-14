@@ -32,7 +32,7 @@ def train(args):
 
     # Containers for storing statistics over epochs
     loss_train, train_accuracy, topk_train_accuracy = [], [], []
-    loss_val, val_accuracy, topk_val_accuracy, average_k_val_accuracy = [], [], [], []
+    loss_val, val_accuracy, topk_val_accuracy, average_k_val_accuracy, class_accuracies_val = [], [], [], [], []
 
     best_val_accuracy = np.float('-inf')
     save_name = args.save_name_xp.strip()
@@ -59,7 +59,8 @@ def train(args):
             epoch_average_k_accuracy_val, lmbda_val = val_epoch(model, val_loader, criteria,
                                                                 loss_val, val_accuracy,
                                                                 topk_val_accuracy, average_k_val_accuracy,
-                                                                args.k, dataset_attributes, args.use_gpu)
+                                                                class_accuracies_val, args.k, dataset_attributes,
+                                                                args.use_gpu)
 
         # no matter what, save model at every epoch
         save(model, optimizer, epoch, os.path.join(save_dir, save_name + '_weights.tar'))
@@ -83,7 +84,7 @@ def train(args):
     loss_test_ba, accuracy_test_ba, \
         top_k_accuracy_test_ba, average_k_accuracy_test_ba = test_epoch(model, test_loader, criteria, args.k,
                                                                         lmbda_best_acc, args.use_gpu,
-                                                                        dataset_attributes['n_test'])
+                                                                        dataset_attributes)
 
     # Save the results as a dictionary and save it as a pickle file in desired location
 
