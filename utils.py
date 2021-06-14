@@ -24,6 +24,27 @@ def set_seed(args, use_gpu, print_out=True):
         torch.cuda.manual_seed(args.seed)
 
 
+def update_correct_per_class(batch_output, batch_y, d):
+    predicted_class = torch.argmax(batch_output, dim=-1)
+    for true_label, predicted_label in zip(batch_y, predicted_class):
+        if true_label == predicted_label:
+            d[true_label.item()] += 1
+        else:
+            d[true_label.item()] += 0
+
+
+def update_correct_per_class_topk(batch_output, batch_y, d, k):
+    topk_labels_pred = torch.argsort(batch_output, axis=-1, descending=True)[:, :k]
+    for true_label, predicted_labels in zip(batch_y, topk_labels_pred):
+        d[true_label.item()] += torch.sum(true_label == predicted_labels).item()
+
+
+def update_correct_per_class_averagek(val_probas, val_labels, d, lmbda):
+    ground_truth_probas = torch.gather(val_probas, dim=1, index=val_labels.unsqueeze(-1))
+    for true_label, predicted_label in zip(val_labels, ground_truth_probas):
+        d[true_label.item()] += (predicted_label >= lmbda).item()
+
+
 def count_correct_top_k(scores, labels, k):
     """Given a tensor of scores of size (n_batch, n_classes) and a tensor of
     labels of size n_batch, computes the number of correctly predicted exemples
