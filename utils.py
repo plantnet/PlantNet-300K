@@ -7,7 +7,6 @@ from collections import Counter
 
 from torchvision.models import resnet18, resnet50, resnet101, resnet152
 import torch.nn as nn
-from torch.nn import CrossEntropyLoss
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as transforms
 
@@ -39,13 +38,13 @@ def update_correct_per_class_topk(batch_output, batch_y, d, k):
         d[true_label.item()] += torch.sum(true_label == predicted_labels).item()
 
 
-def update_correct_per_class_averagek(val_probas, val_labels, d, lmbda):
+def update_correct_per_class_avgk(val_probas, val_labels, d, lmbda):
     ground_truth_probas = torch.gather(val_probas, dim=1, index=val_labels.unsqueeze(-1))
     for true_label, predicted_label in zip(val_labels, ground_truth_probas):
         d[true_label.item()] += (predicted_label >= lmbda).item()
 
 
-def count_correct_top_k(scores, labels, k):
+def count_correct_topk(scores, labels, k):
     """Given a tensor of scores of size (n_batch, n_classes) and a tensor of
     labels of size n_batch, computes the number of correctly predicted exemples
     in the batch (in the top_k accuracy sense).
@@ -55,7 +54,7 @@ def count_correct_top_k(scores, labels, k):
     return torch.eq(labels, top_k_scores).sum()
 
 
-def count_correct_average_k(probas, labels, lmbda):
+def count_correct_avgk(probas, labels, lmbda):
     """Given a tensor of scores of size (n_batch, n_classes) and a tensor of
     labels of size n_batch, computes the number of correctly predicted exemples
     in the batch (in the top_k accuracy sense).
@@ -63,12 +62,6 @@ def count_correct_average_k(probas, labels, lmbda):
     gt_probas = torch.gather(probas, dim=1, index=labels.unsqueeze(-1))
     res = torch.sum((gt_probas) >= lmbda)
     return res
-
-
-def compute_lambda_batch(batch_proba, k):
-    sorted_probas, _ = torch.sort(torch.flatten(batch_proba), descending=True)
-    batch_lambda = 0.5 * (sorted_probas[len(batch_proba) * k - 1] + sorted_probas[len(batch_proba) * k])
-    return batch_lambda
 
 
 def load_model(model, filename, use_gpu):
