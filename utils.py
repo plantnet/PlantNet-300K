@@ -151,6 +151,7 @@ def get_data(args):
                                             shuffle=True, num_workers=args.num_workers)
 
     testset = Plantnet(args.root, 'test', transform=transform)
+    test_class_to_num_instances = Counter(testset.targets)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=args.num_workers)
 
@@ -158,9 +159,10 @@ def get_data(args):
     n_classes = len(trainset.classes)
 
     dataset_attributes = {'n_train': len(trainset), 'n_val': len(valset), 'n_test': len(testset), 'n_classes': n_classes,
-                          'lr_schedule': [],
+                          'lr_schedule': [40, 50, 60],
                           'class2num_instances': {'train': train_class_to_num_instances,
-                                                  'val': val_class_to_num_instances},
+                                                  'val': val_class_to_num_instances,
+                                                  'test': test_class_to_num_instances},
                           'class_to_idx': trainset.class_to_idx}
 
     return trainloader, valloader, testloader, dataset_attributes

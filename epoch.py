@@ -151,16 +151,17 @@ def test_epoch(model, test_loader, criteria, list_k, lmbda, use_gpu, dataset_att
             if use_gpu:
                 batch_x_test, batch_y_test = batch_x_test.cuda(), batch_y_test.cuda()
             batch_output_test = model(batch_x_test)
-            batch_ouput_probra_test = F.softmax(batch_output_test)
+            batch_proba_test = F.softmax(batch_output_test)
             loss_batch_test = criteria(batch_output_test, batch_y_test)
             loss_epoch_test += loss_batch_test.item()
 
             n_correct_test += torch.sum(torch.eq(batch_y_test, torch.argmax(batch_output_test, dim=-1))).item()
+            update_correct_per_class(batch_proba_test, batch_y_test, class_acc_dict['class_acc'])
             for k in list_k:
                 n_correct_topk_test[k] += count_correct_topk(scores=batch_output_test, labels=batch_y_test, k=k).item()
-                n_correct_avgk_test[k] += count_correct_avgk(probas=batch_ouput_probra_test, labels=batch_y_test, lmbda=lmbda[k]).item()
+                n_correct_avgk_test[k] += count_correct_avgk(probas=batch_proba_test, labels=batch_y_test, lmbda=lmbda[k]).item()
                 update_correct_per_class_topk(batch_output_test, batch_y_test, class_acc_dict['class_topk_acc'][k], k)
-                update_correct_per_class_avgk(batch_ouput_probra_test, batch_y_test, class_acc_dict['class_avgk_acc'][k], lmbda[k])
+                update_correct_per_class_avgk(batch_proba_test, batch_y_test, class_acc_dict['class_avgk_acc'][k], lmbda[k])
 
         # After seeing test set update the statistics over batches and store them
         loss_epoch_test /= batch_idx
@@ -170,11 +171,10 @@ def test_epoch(model, test_loader, criteria, list_k, lmbda, use_gpu, dataset_att
             avgk_acc_epoch_test[k] = n_correct_avgk_test[k] / n_test
 
         for class_id in class_acc_dict['class_acc'].keys():
-            n_class_test = dataset_attributes['class2num_instances']['test'][
-                class_id]
+            n_class_test = dataset_attributes['class2num_instances']['test'][class_id]
             class_acc_dict['class_acc'][class_id] = class_acc_dict['class_acc'][class_id] / n_class_test
             for k in list_k:
                 class_acc_dict['class_topk_acc'][k][class_id] = class_acc_dict['class_topk_acc'][k][class_id] / n_class_test
                 class_acc_dict['class_avgk_acc'][k][class_id] = class_acc_dict['class_avgk_acc'][k][class_id] / n_class_test
 
-    return loss_epoch_test, acc_epoch_test, topk_acc_epoch_test, avgk_acc_epoch_test
+    return loss_epoch_test, acc_epoch_test, topk_acc_epoch_test, avgk_acc_epoch_test, class_acc_dict

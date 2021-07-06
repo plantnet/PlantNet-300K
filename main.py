@@ -74,19 +74,21 @@ def train(args):
 
     # load weights corresponding to best val accuracy and evaluate on test
     load_model(model, os.path.join(save_dir, save_name + '_weights_best_acc.tar'), args.use_gpu)
-    loss_test_ba, acc_test_ba, topk_acc_test_ba, avgk_acc_test_ba = test_epoch(model, test_loader, criteria, args.k,
-                                                                               lmbda_best_acc, args.use_gpu,
-                                                                               dataset_attributes)
+    loss_test_ba, acc_test_ba, topk_acc_test_ba, \
+    avgk_acc_test_ba, class_acc_test = test_epoch(model, test_loader, criteria, args.k,
+                                                  lmbda_best_acc, args.use_gpu,
+                                                  dataset_attributes)
 
     # Save the results as a dictionary and save it as a pickle file in desired location
 
     results = {'loss_train': loss_train, 'acc_train': acc_train, 'topk_acc_train': topk_acc_train,
-               'loss_val': loss_val, 'acc_val': acc_val, 'topk_acc_val': topk_acc_val,
+               'loss_val': loss_val, 'acc_val': acc_val, 'topk_acc_val': topk_acc_val, 'class_acc_val': class_acc_val,
                'avgk_acc_val': avgk_acc_val,
                'test_results': {'loss': loss_test_ba,
                                 'accuracy': acc_test_ba,
                                 'topk_accuracy': topk_acc_test_ba,
-                                'avgk_accuracy': avgk_acc_test_ba},
+                                'avgk_accuracy': avgk_acc_test_ba,
+                                'class_acc_dict': class_acc_test},
                'params': args.__dict__}
 
     with open(os.path.join(save_dir, save_name + '.pkl'), 'wb') as f:
