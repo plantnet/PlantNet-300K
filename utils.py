@@ -140,17 +140,17 @@ def get_data(args):
     transform = transforms.Compose(
         [MaxCenterCrop(), transforms.Resize(args.size_image), transforms.ToTensor()])
 
-    trainset = Plantnet(args.root, 'train', transform=transform)
+    trainset = Plantnet(args.root, 'images_train', transform=transform)
     train_class_to_num_instances = Counter(trainset.targets)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=args.num_workers)
 
-    valset = Plantnet(args.root, 'val', transform=transform)
+    valset = Plantnet(args.root, 'images_val', transform=transform)
 
     valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
                                             shuffle=True, num_workers=args.num_workers)
 
-    testset = Plantnet(args.root, 'test', transform=transform)
+    testset = Plantnet(args.root, 'images_test', transform=transform)
     test_class_to_num_instances = Counter(testset.targets)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                              shuffle=False, num_workers=args.num_workers)
