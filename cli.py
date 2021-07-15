@@ -1,5 +1,4 @@
 import torch
-import os
 
 
 def add_all_parsers(parser):
@@ -21,14 +20,14 @@ def _add_training_parser(parser):
     group_training.add_argument('--lr', type=float, help='learning rate to use')
     group_training.add_argument('--batch_size', type=int, default=256, help='default is 256')
     group_training.add_argument('--n_epochs', type=int)
-    group_training.add_argument('--k', nargs='+', help='value of k for computing the topk loss and calculating topk accuracy',
+    group_training.add_argument('--k', nargs='+', help='value of k for computing the topk loss and computing topk accuracy',
                                 required=True, type=int)
 
 
 def _add_model_parser(parser):
     group_model = parser.add_argument_group('Model parameters')
-    group_model.add_argument('--model', choices=['resnet18', 'resnet50', 'resnet101', 'resnet152'],
-                             default='resnet18', help='choose the model you want to train on')
+    group_model.add_argument('--model', choices=['resnet50', 'densenet121', 'densenet169', 'mobilenet_v2', 'inception_resnetv2'],
+                             default='resnet50', help='choose the model you want to train on')
 
 
 def _add_hardware_parser(parser):

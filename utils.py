@@ -1,12 +1,12 @@
 import torch
 import random
+import timm
 import numpy as np
 import os
 from collections import Counter
 
 
-from torchvision.models import resnet18, resnet50, resnet101, resnet152
-import torch.nn as nn
+from torchvision.models import resnet50, densenet121, densenet169, mobilenet_v2
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as transforms
 
@@ -108,12 +108,12 @@ def update_optimizer(optimizer, lr_schedule, epoch):
 
 
 def get_model(args, n_classes):
-    model_dict = {'resnet18': resnet18, 'resnet50': resnet50, 'resnet101': resnet101, 'resnet152': resnet152}
+    model_dict = {'resnet50': resnet50, 'densenet121': densenet121, 'densenet169': densenet169, 'mobilenet_v2': mobilenet_v2}
 
-    model = model_dict[args.model](pretrained=False)
-    # Change last layer to account for number of classes
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, n_classes)
+    if args.model == 'inception_resnetv2':
+        model = timm.create_model('inception_resnet_v2', pretrained=False, num_classes=n_classes)
+    else:
+        model = model_dict[args.model](pretrained=False, num_classes=n_classes)
 
     return model
 
