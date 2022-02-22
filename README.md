@@ -6,12 +6,12 @@ In order to train a model on the PlantNet-300K dataset, you first have to downlo
 
 If you use this work for this research, please cite the paper :
 
-> @inproceedings{garcin2021pl,<br>
-  title={Pl@ ntNet-300K: a plant image dataset with high label ambiguity and a long-tailed distribution},<br>
-  author={Garcin, Camille and Joly, Alexis and Bonnet, Pierre and Lombardo, Jean-Christophe and Affouard, Antoine and Chouet, Mathias and Servajean, Maximilien and Salmon, Joseph and Lorieul, Titouan},<br>
-  booktitle={NeurIPS 2021-35th Conference on Neural Information Processing Systems},<br>
-  year={2021}<br>
-}
+    @inproceedings{garcin2021pl,
+      title={Pl@ ntNet-300K: a plant image dataset with high label ambiguity and a long-tailed distribution},
+      author={Garcin, Camille and Joly, Alexis and Bonnet, Pierre and Lombardo, Jean-Christophe and Affouard, Antoine and Chouet, Mathias and Servajean, Maximilien and Salmon, Joseph and Lorieul, Titouan},
+      booktitle={NeurIPS 2021-35th Conference on Neural Information Processing Systems},
+      year={2021}
+    }
 
 ### Requirements
 
