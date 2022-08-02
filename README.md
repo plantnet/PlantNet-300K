@@ -9,7 +9,7 @@
 
 This repository contains the code used to produce the benchmark in the paper *"Pl@ntNet-300K: a plant image dataset with high label
 ambiguity and a long-tailed distribution"*. You can find a link to the paper [here](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/file/7e7757b1e12abcb736ab9a754ffb617a-Paper-round2.pdf).
-In order to train a model on the PlantNet-300K dataset, you first have to download the dataset [here](https://zenodo.org/record/5645731#.Yuehg3ZBxPY).
+In order to train a model on the PlantNet-300K dataset, you first have to download the dataset [here](https://zenodo.org/record/5645731#.Yuehg3ZBxPY). If you are looking for the hyperparameters used in the paper, you can find them in the supplementary material [here](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/7e7757b1e12abcb736ab9a754ffb617a-Abstract-round2.html).
 
 If you use this work for this research, please cite the paper :
 
