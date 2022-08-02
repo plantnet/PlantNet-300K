@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import random
 import timm
 import numpy as np
@@ -6,7 +7,9 @@ import os
 from collections import Counter
 
 
-from torchvision.models import resnet50, densenet121, densenet169, mobilenet_v2
+from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152, inception_v3, mobilenet_v2, densenet121, \
+    densenet161, densenet169, densenet201, alexnet, squeezenet1_0, shufflenet_v2_x1_0, wide_resnet50_2, wide_resnet101_2,\
+    vgg11, mobilenet_v3_large, mobilenet_v3_small
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as transforms
 
@@ -108,12 +111,57 @@ def update_optimizer(optimizer, lr_schedule, epoch):
 
 
 def get_model(args, n_classes):
-    model_dict = {'resnet50': resnet50, 'densenet121': densenet121, 'densenet169': densenet169, 'mobilenet_v2': mobilenet_v2}
+    pytorch_models = {'resnet18': resnet18, 'resnet34': resnet34, 'resnet50': resnet50, 'resnet101': resnet101,
+                      'resnet152': resnet152, 'densenet121': densenet121, 'densenet161': densenet161,
+                      'densenet169': densenet169, 'densenet201': densenet201, 'mobilenet_v2': mobilenet_v2,
+                      'inception_v3': inception_v3, 'alexnet': alexnet, 'squeezenet': squeezenet1_0,
+                      'shufflenet': shufflenet_v2_x1_0, 'wide_resnet50_2': wide_resnet50_2,
+                      'wide_resnet101_2': wide_resnet101_2, 'vgg11': vgg11, 'mobilenet_v3_large': mobilenet_v3_large,
+                      'mobilenet_v3_small': mobilenet_v3_small
+                      }
+    timm_models = {'inception_resnet_v2', 'inception_v4', 'efficientnet_b0', 'efficientnet_b1',
+                   'efficientnet_b2', 'efficientnet_b3', 'efficientnet_b4', 'vit_base_patch16_224'}
 
-    if args.model == 'inception_resnetv2':
-        model = timm.create_model('inception_resnet_v2', pretrained=False, num_classes=n_classes)
+    if args.model in pytorch_models.keys() and not args.pretrained:
+        if args.model == 'inception_v3':
+            model = pytorch_models[args.model](pretrained=False, num_classes=n_classes, aux_logits=False)
+        else:
+            model = pytorch_models[args.model](pretrained=False, num_classes=n_classes)
+    elif args.model in pytorch_models.keys() and args.pretrained:
+        if args.model in {'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'wide_resnet50_2',
+                          'wide_resnet101_2', 'shufflenet'}:
+            model = pytorch_models[args.model](pretrained=True)
+            num_ftrs = model.fc.in_features
+            model.fc = nn.Linear(num_ftrs, n_classes)
+        elif args.model in {'alexnet', 'vgg11'}:
+            model = pytorch_models[args.model](pretrained=True)
+            num_ftrs = model.classifier[6].in_features
+            model.classifier[6] = nn.Linear(num_ftrs, n_classes)
+        elif args.model in {'densenet121', 'densenet161', 'densenet169', 'densenet201'}:
+            model = pytorch_models[args.model](pretrained=True)
+            num_ftrs = model.classifier.in_features
+            model.classifier = nn.Linear(num_ftrs, n_classes)
+        elif args.model == 'mobilenet_v2':
+            model = pytorch_models[args.model](pretrained=True)
+            num_ftrs = model.classifier[1].in_features
+            model.classifier[1] = nn.Linear(num_ftrs, n_classes)
+        elif args.model == 'inception_v3':
+            model = inception_v3(pretrained=True, aux_logits=False)
+            num_ftrs = model.fc.in_features
+            model.fc = nn.Linear(num_ftrs, n_classes)
+        elif args.model == 'squeezenet':
+            model = pytorch_models[args.model](pretrained=True)
+            model.classifier[1] = nn.Conv2d(512, n_classes, kernel_size=(1, 1), stride=(1, 1))
+            model.num_classes = n_classes
+        elif args.model == 'mobilenet_v3_large' or args.model == 'mobilenet_v3_small':
+            model = pytorch_models[args.model](pretrained=True)
+            num_ftrs = model.classifier[-1].in_features
+            model.classifier[-1] = nn.Linear(num_ftrs, n_classes)
+
+    elif args.model in timm_models:
+        model = timm.create_model(args.model, pretrained=args.pretrained, num_classes=n_classes)
     else:
-        model = model_dict[args.model](pretrained=False, num_classes=n_classes)
+        raise NotImplementedError
 
     return model
 
@@ -129,37 +177,42 @@ class Plantnet(ImageFolder):
         return os.path.join(self.root, self.split)
 
 
-class MaxCenterCrop:
-    def __call__(self, sample):
-        min_size = min(sample.size[0], sample.size[1])
-        return CenterCrop(min_size)(sample)
+def get_data(root, image_size, crop_size, batch_size, num_workers, pretrained):
 
+    if pretrained:
+        transform_train = transforms.Compose([transforms.Resize(size=image_size), transforms.RandomCrop(size=crop_size),
+                                              transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                                          std=[0.229, 0.224, 0.225])])
+        transform_test = transforms.Compose([transforms.Resize(size=image_size), transforms.CenterCrop(size=crop_size),
+                                             transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                                         std=[0.229, 0.224, 0.225])])
+    else:
+        transform_train = transforms.Compose([transforms.Resize(size=image_size), transforms.RandomCrop(size=crop_size),
+                                              transforms.ToTensor(), transforms.Normalize(mean=[0.4425, 0.4695, 0.3266],
+                                                                                          std=[0.2353, 0.2219, 0.2325])])
+        transform_test = transforms.Compose([transforms.Resize(size=image_size), transforms.CenterCrop(size=crop_size),
+                                             transforms.ToTensor(), transforms.Normalize(mean=[0.4425, 0.4695, 0.3266],
+                                                                                         std=[0.2353, 0.2219, 0.2325])])
 
-def get_data(args):
-
-    transform = transforms.Compose(
-        [MaxCenterCrop(), transforms.Resize(args.size_image), transforms.ToTensor()])
-
-    trainset = Plantnet(args.root, 'images_train', transform=transform)
+    trainset = Plantnet(root, 'train', transform=transform_train)
     train_class_to_num_instances = Counter(trainset.targets)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=True, num_workers=args.num_workers)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+                                              shuffle=True, num_workers=num_workers)
 
-    valset = Plantnet(args.root, 'images_val', transform=transform)
+    valset = Plantnet(root, 'val', transform=transform_test)
 
-    valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
-                                            shuffle=True, num_workers=args.num_workers)
+    valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size,
+                                            shuffle=True, num_workers=num_workers)
 
-    testset = Plantnet(args.root, 'images_test', transform=transform)
+    testset = Plantnet(root, 'test', transform=transform_test)
     test_class_to_num_instances = Counter(testset.targets)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
-                                             shuffle=False, num_workers=args.num_workers)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+                                             shuffle=False, num_workers=num_workers)
 
     val_class_to_num_instances = Counter(valset.targets)
     n_classes = len(trainset.classes)
 
     dataset_attributes = {'n_train': len(trainset), 'n_val': len(valset), 'n_test': len(testset), 'n_classes': n_classes,
-                          'lr_schedule': [40, 50, 60],
                           'class2num_instances': {'train': train_class_to_num_instances,
                                                   'val': val_class_to_num_instances,
                                                   'test': test_class_to_num_instances},

@@ -14,12 +14,14 @@ from cli import add_all_parsers
 
 def train(args):
     set_seed(args, use_gpu=torch.cuda.is_available())
-    train_loader, val_loader, test_loader, dataset_attributes = get_data(args)
+    train_loader, val_loader, test_loader, dataset_attributes = get_data(args.root, args.image_size, args.crop_size,
+                                                                         args.batch_size, args.num_workers, args.pretrained)
 
     model = get_model(args, n_classes=dataset_attributes['n_classes'])
     criteria = CrossEntropyLoss()
 
     if args.use_gpu:
+        print('USING GPU')
         torch.cuda.set_device(0)
         model.cuda()
         criteria.cuda()
@@ -42,7 +44,7 @@ def train(args):
 
     for epoch in tqdm(range(args.n_epochs), desc='epoch', position=0):
         t = time.time()
-        optimizer = update_optimizer(optimizer, lr_schedule=dataset_attributes['lr_schedule'], epoch=epoch)
+        optimizer = update_optimizer(optimizer, lr_schedule=args.epoch_decay, epoch=epoch)
 
         loss_epoch_train, acc_epoch_train, topk_acc_epoch_train = train_epoch(model, optimizer, train_loader,
                                                                               criteria, loss_train, acc_train,
