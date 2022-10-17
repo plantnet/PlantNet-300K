@@ -29,7 +29,20 @@ If you wish to download **ONLY** the metadata files (not possible in Zenodo), yo
 ### Pre-trained models
 
 You can find the pre-trained models [here](https://lab.plantnet.org/seafile/d/01ab6658dad6447c95ae/).
+To load the pre-trained models, you can simply use the *load_model* function in *utils.py*. For instance, if you want to load the resnet18 weights:
 
+```python
+from utils import load_model
+from torchvision.models import resnet18
+
+filename = 'resnet18_weights_best_acc.tar' # pre-trained model path
+use_gpu = True  # load weights on the gpu
+model = resnet18(num_classes=1081) # 1081 classes in Pl@ntNet-300K
+
+load_model(model, filename=filename, use_gpu=use_gpu)
+```
+
+Note that if you want to fine-tune the model on another dataset, you have to change the last layer. You can find examples in the *get_model* function in *utils.py*. 
 ### Requirements
 
 Only pytorch, torchvision are necessary for the code to run. 
