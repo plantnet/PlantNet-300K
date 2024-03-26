@@ -8,9 +8,15 @@
 </p>
 
 This repository contains the code used to produce the benchmark in the paper *"Pl@ntNet-300K: a plant image dataset with high label
-ambiguity and a long-tailed distribution"*. You can find a link to the paper [here](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/file/7e7757b1e12abcb736ab9a754ffb617a-Paper-round2.pdf).
-In order to train a model on the PlantNet-300K dataset, you first have to download the dataset [here](https://zenodo.org/record/5645731#.Yuehg3ZBxPY). If you are looking for the hyperparameters used in the paper, you can find them in the supplementary material [here](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/7e7757b1e12abcb736ab9a754ffb617a-Abstract-round2.html).
+ambiguity and a long-tailed distribution"*.
 
+## Download the dataset
+
+In order to train a model on the PlantNet-300K dataset, you first have to [download the dataset on Zenodo](https://zenodo.org/record/5645731#.Yuehg3ZBxPY).
+
+## Scientific Publication
+
+You can find detailed information about the dataset as well as extensive experiments in the [NeurIPS 2021 paper](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/file/7e7757b1e12abcb736ab9a754ffb617a-Paper-round2.pdf).
 If you use this work for your research, please cite the paper:
 
     @inproceedings{plantnet-300k,
@@ -20,11 +26,36 @@ If you use this work for your research, please cite the paper:
     year      = {2021},
     }
     
+## Overview
+
+Pl@ntNet-300K is a plant dataset containing 306,146 plant images covering 1081 species (the classes).
+Pl@ntNet-300K is characterized by high class ambiguity and strong class imbalance.
+The graph below highlights the long-tailed distribution of the dataset: 80% of species account for only 11% of the total number of images.
+
+<p align="center">
+<img src="images/lorentz_curve.jpg" width="50%">
+</p>
+
+The images are split into a train, val and test set, each containing the following number of images : 
+
+<div align="center">
+
+| Train | Val | Test |
+|-----------------|-----------------|-----------------|
+| 243,916    | 31,118    | 31,112    |
+
+</div>
+
 ### Dataset Version // Meta-data files
 
 Make sure you download the latest version of the dataset in Zenodo (version 1.1 as in the link above, not 1.0).
 The difference lies in the metadata files, the images are the same.
 If you wish to download **ONLY** the metadata files (not possible in Zenodo), you will find them [here](https://lab.plantnet.org/seafile/d/bed81bc15e8944969cf6/).
+
+### Hyperparameters
+
+If you are looking for the hyperparameters used in the paper, you can find them in the [supplementary material](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/7e7757b1e12abcb736ab9a754ffb617a-Abstract-round2.html).
+
 
 ### Pre-trained models
 
