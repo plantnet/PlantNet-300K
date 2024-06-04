@@ -51,6 +51,11 @@ The images are split into a train, val and test set, each containing the followi
 Make sure you download the latest version of the dataset in Zenodo (version 1.1 as in the link above, not 1.0).
 The difference lies in the metadata files, the images are the same.
 If you wish to download **ONLY** the metadata files (not possible in Zenodo), you will find them [here](https://lab.plantnet.org/seafile/d/bed81bc15e8944969cf6/).
+The folder contains three files: 
+
+- *plantnet300K_metadata.json* which maps the id of each image with several pieces of information (species id, split, author, license, ...) 
+- *plantnet300K_species_id_2_name.json*, a mapping between the species id and its scientific name
+- *class_idx_to_species_id.json*, which maps the class id (from 0 to 1080) to the species id (if you're using the pretrained weights)
 
 ### Hyperparameters
 
