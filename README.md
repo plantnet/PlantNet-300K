@@ -1,4 +1,4 @@
-# PlantNet-300K
+# Pl@ntNet-300K
 
 <p align="middle">
   <img src="/images/1.jpg" width="180" hspace="2"/>
