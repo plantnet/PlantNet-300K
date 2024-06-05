@@ -20,7 +20,7 @@ You can find detailed information about the dataset as well as extensive experim
 If you use this work for your research, please cite the paper:
 
     @inproceedings{plantnet-300k,
-    author    = {C. Garcin and A. Joly and P. Bonnet and A. Affouard and \JC Lombardo and M. Chouet and M. Servajean and T. Lorieul and J. Salmon},
+    author    = {Garcin, Camille and Joly, Alexis and Bonnet, Pierre and Lombardo, Jean-Christophe and Affouard, Antoine and Chouet, Mathias and Servajean, Maximilien and Lorieul, Titouan and Salmon, Joseph},
     booktitle = {NeurIPS Datasets and Benchmarks 2021},
     title     = {{Pl@ntNet-300K}: a plant image dataset with high label ambiguity and a long-tailed distribution},
     year      = {2021},
@@ -55,7 +55,7 @@ The folder contains three files:
 
 - `plantnet300K_metadata.json`  maps the id of each image with several pieces of information (species id, split, author, license, ...) 
 - `plantnet300K_species_id_2_name.json`, maps the species id and its scientific name
-- `class_idx_to_species_id.json`, maps the class id (from 0 to 1080) to the species id (usefull for the pretrained weights)
+- `class_idx_to_species_id.json`, maps the class id (from 0 to 1080) to the species id (useful for the pretrained weights)
 
 ### Hyperparameters
 
@@ -95,3 +95,4 @@ In order to train a model on the PlantNet-300K dataset, run the following comman
  You must provide in the `root` option the path to the train val and test folders (here: `path_to_data`). 
  The `save_name_xp` option is the name of the directory where the weights of the model and the results (metrics) will be stored.
  You can check out the different options in the file `cli.py`.
+
