@@ -20,7 +20,7 @@ You can find detailed information about the dataset as well as extensive experim
 If you use this work for your research, please cite the paper:
 
     @inproceedings{plantnet-300k,
-    author    = {C. Garcin and A. Joly and P. Bonnet and A. Affouard and \JC Lombardo and M. Chouet and M. Servajean and T. Lorieul and J. Salmon},
+    author    = {Garcin, Camille and Joly, Alexis and Bonnet, Pierre and Lombardo, Jean-Christophe and Affouard, Antoine and Chouet, Mathias and Servajean, Maximilien and Lorieul, Titouan and Salmon, Joseph},
     booktitle = {NeurIPS Datasets and Benchmarks 2021},
     title     = {{Pl@ntNet-300K}: a plant image dataset with high label ambiguity and a long-tailed distribution},
     year      = {2021},
