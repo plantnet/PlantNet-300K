@@ -14,7 +14,7 @@ ambiguity and a long-tailed distribution"***.
 
 In order to train a model on the PlantNet-300K dataset, you first have to [download the dataset on Zenodo](https://zenodo.org/record/5645731#.Yuehg3ZBxPY).
 
-## Scientific Publication
+## Scientific publication
 
 You can find detailed information about the dataset as well as extensive experiments in the [NeurIPS 2021 paper](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/file/7e7757b1e12abcb736ab9a754ffb617a-Paper-round2.pdf).
 If you use this work for your research, please cite the paper:
@@ -46,7 +46,7 @@ The images are split into a train, val and test set, each containing the followi
 
 </div>
 
-### Dataset Version & Meta-data files
+### Dataset, versions & meta-data
 
 Make sure you download the latest version of the dataset in Zenodo (version 1.1 as in the link above, not 1.0).
 The difference lies in the metadata files, the images are the same.
@@ -78,7 +78,8 @@ model = resnet18(num_classes=1081) # 1081 classes in Pl@ntNet-300K
 load_model(model, filename=filename, use_gpu=use_gpu)
 ```
 
-Note that if you want to fine-tune the model on another dataset, you have to change the last layer. You can find examples in the `get_model` function in `utils.py. 
+Note that if you want to fine-tune the model on another dataset, you have to change the last layer. You can find examples in the `get_model` function in `utils.py`.
+
 ### Requirements
 
 Only pytorch, torchvision are necessary for the code to run. 
