@@ -72,7 +72,7 @@ def load_model(model, filename, use_gpu):
         raise FileNotFoundError
 
     device = 'cuda:0' if use_gpu else 'cpu'
-    d = torch.load(filename, map_location=device)
+    d = torch.load(filename, map_location=device, weights_only=True)
     model.load_state_dict(d['model'])
     return d['epoch']
 
