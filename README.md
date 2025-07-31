@@ -78,7 +78,7 @@ model = resnet18(num_classes=1081) # 1081 classes in Pl@ntNet-300K
 load_model(model, filename=filename, use_gpu=use_gpu)
 ```
 
-Note that if you want to fine-tune the model on another dataset, you have to change the last layer. You can find examples in the `get_model` function in `utils.py. 
+Note that if you want to fine-tune the model on another dataset, you have to change the last layer. You can find examples in the `get_model` function in `utils.py`. 
 ### Requirements
 
 Only pytorch, torchvision are necessary for the code to run. 
