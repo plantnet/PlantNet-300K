@@ -1,104 +1,120 @@
-import os
-from tqdm import tqdm
-import pickle
-import argparse
-import time
+from pathlib import Path
+
 import torch
-from torch.optim import SGD
-from torch.nn import CrossEntropyLoss
+import torch.nn as nn
 
-from utils import set_seed, load_model, save, get_model, update_optimizer, get_data
-from epoch import train_epoch, val_epoch, test_epoch
-from cli import add_all_parsers
-
-
-def train(args):
-    set_seed(args, use_gpu=torch.cuda.is_available())
-    train_loader, val_loader, test_loader, dataset_attributes = get_data(args.root, args.image_size, args.crop_size,
-                                                                         args.batch_size, args.num_workers, args.pretrained)
-
-    model = get_model(args, n_classes=dataset_attributes['n_classes'])
-    criteria = CrossEntropyLoss()
-
-    if args.use_gpu:
-        print('USING GPU')
-        torch.cuda.set_device(0)
-        model.cuda()
-        criteria.cuda()
-
-    optimizer = SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.mu, nesterov=True)
-
-    # Containers for storing metrics over epochs
-    loss_train, acc_train, topk_acc_train = [], [], []
-    loss_val, acc_val, topk_acc_val, avgk_acc_val, class_acc_val = [], [], [], [], []
-
-    save_name = args.save_name_xp.strip()
-    save_dir = os.path.join(os.getcwd(), 'results', save_name)
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-
-    print('args.k : ', args.k)
-
-    lmbda_best_acc = None
-    best_val_acc = float('-inf')
-
-    for epoch in tqdm(range(args.n_epochs), desc='epoch', position=0):
-        t = time.time()
-        optimizer = update_optimizer(optimizer, lr_schedule=args.epoch_decay, epoch=epoch)
-
-        loss_epoch_train, acc_epoch_train, topk_acc_epoch_train = train_epoch(model, optimizer, train_loader,
-                                                                              criteria, loss_train, acc_train,
-                                                                              topk_acc_train, args.k,
-                                                                              dataset_attributes['n_train'],
-                                                                              args.use_gpu)
-
-        loss_epoch_val, acc_epoch_val, topk_acc_epoch_val, \
-        avgk_acc_epoch_val, lmbda_val = val_epoch(model, val_loader, criteria,
-                                                  loss_val, acc_val, topk_acc_val, avgk_acc_val,
-                                                  class_acc_val, args.k, dataset_attributes, args.use_gpu)
-
-        # save model at every epoch
-        save(model, optimizer, epoch, os.path.join(save_dir, save_name + '_weights.tar'))
-
-        # save model with best val accuracy
-        if acc_epoch_val > best_val_acc:
-            best_val_acc = acc_epoch_val
-            lmbda_best_acc = lmbda_val
-            save(model, optimizer, epoch, os.path.join(save_dir, save_name + '_weights_best_acc.tar'))
-
-        print()
-        print(f'epoch {epoch} took {time.time()-t:.2f}')
-        print(f'loss_train : {loss_epoch_train}')
-        print(f'loss_val : {loss_epoch_val}')
-        print(f'acc_train : {acc_epoch_train} / topk_acc_train : {topk_acc_epoch_train}')
-        print(f'acc_val : {acc_epoch_val} / topk_acc_val : {topk_acc_epoch_val} / '
-              f'avgk_acc_val : {avgk_acc_epoch_val}')
-
-    # load weights corresponding to best val accuracy and evaluate on test
-    load_model(model, os.path.join(save_dir, save_name + '_weights_best_acc.tar'), args.use_gpu)
-    loss_test_ba, acc_test_ba, topk_acc_test_ba, \
-    avgk_acc_test_ba, class_acc_test = test_epoch(model, test_loader, criteria, args.k,
-                                                  lmbda_best_acc, args.use_gpu,
-                                                  dataset_attributes)
-
-    # Save the results as a dictionary and save it as a pickle file in desired location
-
-    results = {'loss_train': loss_train, 'acc_train': acc_train, 'topk_acc_train': topk_acc_train,
-               'loss_val': loss_val, 'acc_val': acc_val, 'topk_acc_val': topk_acc_val, 'class_acc_val': class_acc_val,
-               'avgk_acc_val': avgk_acc_val,
-               'test_results': {'loss': loss_test_ba,
-                                'accuracy': acc_test_ba,
-                                'topk_accuracy': topk_acc_test_ba,
-                                'avgk_accuracy': avgk_acc_test_ba,
-                                'class_acc_dict': class_acc_test},
-               'params': args.__dict__}
-
-    with open(os.path.join(save_dir, save_name + '.pkl'), 'wb') as f:
-        pickle.dump(results, f)
+from args import parse_args
+from dataset import get_dataloaders
+from eval import evaluate
+from model import build_model
+from train import train_epoch
+from transforms import TrainTransform, ValTransform
+from utils import cosine_scheduler
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    add_all_parsers(parser)
-    args = parser.parse_args()
-    train(args)
+def state_dict_to_cpu(module):
+    return {
+        name: parameter.detach().cpu().clone()
+        for name, parameter in module.state_dict().items()
+    }
+
+
+def main(args):
+    device = torch.device(args.device)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA was requested but is not available. Use --device cpu.")
+
+    run_name = f"plantnet300kv2_{args.model}"
+    if args.wandb:
+        import wandb
+
+        Path(args.wandb_tmpdir).mkdir(parents=True, exist_ok=True)
+        wandb.init(
+            project=args.wandb_projname,
+            entity=args.wandb_entity,
+            dir=args.wandb_tmpdir,
+            name=run_name,
+            config=vars(args),
+        )
+
+    train_transform = TrainTransform(
+        crop_size=args.crop_size,
+        scale_min=args.scale_min,
+    )
+    eval_transform = ValTransform(
+        resize_size=args.resize_size,
+        crop_size=args.crop_size,
+    )
+    train_loader, val_loader, test_loader, num_classes = get_dataloaders(
+        args, train_transform, eval_transform
+    )
+
+    model = build_model(args.model, num_classes=num_classes).to(device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
+    lr_schedule = cosine_scheduler(
+        args.lr,
+        args.min_lr,
+        args.epochs,
+        len(train_loader),
+        args.warmup_epochs,
+    )
+    criterion = nn.CrossEntropyLoss()
+    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
+
+    best_val_accuracy = float("-inf")
+    best_checkpoint = None
+
+    for epoch in range(args.epochs):
+        train_loss = train_epoch(
+            model,
+            train_loader,
+            optimizer,
+            criterion,
+            scaler,
+            lr_schedule,
+            epoch,
+            device,
+        )
+        metrics = {"train_loss": train_loss}
+        print(f"Epoch [{epoch + 1}/{args.epochs}] - Train Loss: {train_loss:.4f}")
+
+        should_evaluate = (epoch + 1) % args.eval_freq == 0 or epoch + 1 == args.epochs
+        if should_evaluate:
+            val_loss, val_accuracy = evaluate(model, val_loader, criterion, device)
+            metrics.update({"val_loss": val_loss, "val_accuracy": val_accuracy})
+            print(f"Val Loss: {val_loss:.4f} | Val Acc: {val_accuracy:.4f}")
+
+            if val_accuracy > best_val_accuracy:
+                best_val_accuracy = val_accuracy
+                best_checkpoint = {
+                    "model_name": args.model,
+                    "num_classes": num_classes,
+                    "encoder": state_dict_to_cpu(model.encoder),
+                    "classifier": state_dict_to_cpu(model.classifier),
+                }
+
+        if args.wandb:
+            wandb.log(metrics, step=epoch + 1)
+
+    model.encoder.load_state_dict(best_checkpoint["encoder"])
+    model.classifier.load_state_dict(best_checkpoint["classifier"])
+    _, test_accuracy = evaluate(model, test_loader, criterion, device)
+
+    print(f"Best Val Acc: {best_val_accuracy:.4f}")
+    print(f"Test Acc: {test_accuracy:.4f}")
+
+    checkpoint_dir = Path(args.ckpt_dir)
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = checkpoint_dir / f"{run_name}.pth"
+    torch.save(best_checkpoint, checkpoint_path)
+    print(f"Model saved to: {checkpoint_path}")
+
+    if args.wandb:
+        wandb.log(
+            {"best_val_accuracy": best_val_accuracy, "test_accuracy": test_accuracy}
+        )
+        wandb.finish()
+
+
+if __name__ == "__main__":
+    main(parse_args())
