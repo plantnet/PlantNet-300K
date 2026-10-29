@@ -89,11 +89,9 @@ The main options are:
 | `--batch_size` | `256` | Batch size |
 | `--num_workers` | `32` | Data-loading workers |
 | `--epochs` | `30` | Fine-tuning epochs |
-| `--lr` | `1e-4` | Initial learning rate |
-| `--min_lr` | `1e-6` | Final cosine-schedule learning rate |
-| `--wd` | `1e-4` | AdamW weight decay |
-| `--warmup_epochs` | `0` | Linear warm-up epochs |
-| `--eval_freq` | `1` | Validation frequency in epochs |
+
+Additional optimization, augmentation, evaluation, and logging arguments are
+documented in [`args.py`](args.py).
 
 Add `--wandb` to log the run to Weights & Biases. Use
 `--wandb_projname`, `--wandb_entity`, and `--wandb_tmpdir` to configure it.
@@ -103,15 +101,14 @@ Add `--wandb` to log the run to Weights & Biases. Use
 All models below were trained with the provided code on the 1,000-class v2
 dataset. Accuracy is top-1.
 
-CNX-B and ViT-B are supported by the training and loading code; their benchmark
-rows can be added here once fine-tuned results and released weights are available.
-
 | Model | Best validation accuracy | Test accuracy | Weights |
 |---|---:|---:|---|
 | CNX-T | 0.8248 | 0.8216 | [Download](https://drive.google.com/file/d/1dr3k9_LqME0Gn1P126aBCVo6LFYN8ck0/view?usp=sharing) |
 | CNX-S | 0.8303 | 0.8296 | [Download](https://drive.google.com/file/d/1PfqwoK3siBHDxojWaUnD3_VAb32s4lQc/view?usp=sharing) |
+| CNX-B | 0.8358 | 0.8331 | [Download](https://drive.google.com/file/d/1wWmKvqqr34tR8HdbkrGJmwbjfXXATkPM/view?usp=sharing) |
 | ViT-S | 0.8296 | 0.8297 | [Download](https://drive.google.com/file/d/1lnmhQzbbivsaBy80AQzFVITlDP-KaV5N/view?usp=sharing) |
 | ViT-S+ | 0.8328 | 0.8293 | [Download](https://drive.google.com/file/d/1NyCElv_iN-0Ztb3seSm4SiCTN4Oz3js_/view?usp=sharing) |
+| ViT-B | **0.8462** | **0.8457** | [Download](https://drive.google.com/file/d/1b2mi-NlKHlIeNsKaWKgrLCEx3Z2KaEV2/view?usp=sharing) |
 
 ## Loading a model and extracting embeddings
 
@@ -120,6 +117,9 @@ checkpoint, moves it to the selected device, and enables evaluation mode. A
 forward pass returns both the image embedding and the 1,000 classifier logits.
 
 ```python
+from pathlib import Path
+
+import pandas as pd
 import torch
 from PIL import Image
 
@@ -127,16 +127,24 @@ from model import load_model
 from transforms import ValTransform
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+data_dir = Path("/path/to/plantnet300kv2")
 model = load_model("cnxt", "/path/to/plantnet300kv2_cnxt.pth", device=device)
 transform = ValTransform()
 
-image = transform(Image.open("/path/to/image.jpg").convert("RGB"))
+image = transform(Image.open("images/1.jpg").convert("RGB"))
 images = image.unsqueeze(0).to(device)
 
 with torch.inference_mode():
     embeddings, logits = model(images)
 
 predicted_species_id = logits.argmax(dim=1).item()
+species_metadata = pd.read_csv(data_dir / "species_metadata.csv")
+species_name = species_metadata.loc[
+    species_metadata["species_id"] == predicted_species_id,
+    "full_species",
+].item()
+
+print(f"Predicted species: {species_name} (ID: {predicted_species_id:04d})")
 ```
 
 The outputs are also named, so `output.embeddings` and `output.logits` can be
@@ -144,17 +152,9 @@ used instead of tuple unpacking. Class indices follow sorted `species_id` order;
 for v2 this is `0000` through `0999`. Use `species_metadata.csv` to recover the
 corresponding species name.
 
-To construct a DINOv3-initialized model without loading fine-tuned weights:
-
-```python
-from model import build_model
-
-model = build_model("vitsplus")
-```
-
 ## Citation
 
-If you use the dataset or models, please cite:
+For the Pl@ntNet-300K dataset, please cite:
 
 ```bibtex
 @inproceedings{plantnet-300k,
@@ -166,5 +166,21 @@ If you use the dataset or models, please cite:
   title     = {{Pl@ntNet-300K}: a plant image dataset with high label
                ambiguity and a long-tailed distribution},
   year      = {2021}
+}
+```
+
+For the training configuration, please cite:
+
+```bibtex
+@misc{moummad2026,
+  title         = {Energy-Efficient Plant Monitoring via Knowledge Distillation},
+  author        = {Ilyass Moummad and Reda Bensaid and Kawtar Zaher and
+                   Hervé Goëau and Jean-Christophe Lombardo and Joseph Salmon and
+                   Pierre Bonnet and Alexis Joly},
+  year          = {2026},
+  eprint        = {2604.27178},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2604.27178}
 }
 ```
