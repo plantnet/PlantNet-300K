@@ -96,6 +96,10 @@ documented in [`args.py`](args.py).
 Add `--wandb` to log the run to Weights & Biases. Use
 `--wandb_projname`, `--wandb_entity`, and `--wandb_tmpdir` to configure it.
 
+Instructions and a validated publisher for staging all six trained models in
+the Pl@ntNet Hugging Face organization are available in
+[`huggingface/`](huggingface/README.md).
+
 ## Fine-tuned models
 
 All models below were trained with the provided code on the 1,000-class v2
