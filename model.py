@@ -11,8 +11,10 @@ NUM_CLASSES = 1000
 MODEL_REGISTRY = {
     "cnxt": ("facebook/dinov3-convnext-tiny-pretrain-lvd1689m", 768),
     "cnxs": ("facebook/dinov3-convnext-small-pretrain-lvd1689m", 768),
+    "cnxb": ("facebook/dinov3-convnext-base-pretrain-lvd1689m", 1024),
     "vits": ("facebook/dinov3-vits16-pretrain-lvd1689m", 384),
     "vitsplus": ("facebook/dinov3-vits16plus-pretrain-lvd1689m", 384),
+    "vitb": ("facebook/dinov3-vitb16-pretrain-lvd1689m", 768),
 }
 
 

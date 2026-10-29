@@ -16,7 +16,7 @@ def parse_args():
         "--model",
         type=str,
         required=True,
-        choices=["cnxt", "cnxs", "vits", "vitsplus"],
+        choices=["cnxt", "cnxs", "cnxb", "vits", "vitsplus", "vitb"],
         help="DINOv3 backbone to fine-tune.",
     )
     parser.add_argument(

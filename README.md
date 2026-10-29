@@ -73,15 +73,17 @@ Available architectures are:
 |---|---|---|
 | `cnxt` | ConvNeXt-Tiny | `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` |
 | `cnxs` | ConvNeXt-Small | `facebook/dinov3-convnext-small-pretrain-lvd1689m` |
+| `cnxb` | ConvNeXt-Base | `facebook/dinov3-convnext-base-pretrain-lvd1689m` |
 | `vits` | ViT-S/16 | `facebook/dinov3-vits16-pretrain-lvd1689m` |
 | `vitsplus` | ViT-S+/16 | `facebook/dinov3-vits16plus-pretrain-lvd1689m` |
+| `vitb` | ViT-B/16 | `facebook/dinov3-vitb16-pretrain-lvd1689m` |
 
 The main options are:
 
 | Argument | Default | Description |
 |---|---:|---|
 | `--data_dir` | required | Pl@ntNet-300K-v2 root |
-| `--model` | required | One of `cnxt`, `cnxs`, `vits`, or `vitsplus` |
+| `--model` | required | One of `cnxt`, `cnxs`, `cnxb`, `vits`, `vitsplus`, or `vitb` |
 | `--ckpt_dir` | `./checkpoints` | Checkpoint output directory |
 | `--device` | `cuda` | Training device |
 | `--batch_size` | `256` | Batch size |
@@ -100,6 +102,9 @@ Add `--wandb` to log the run to Weights & Biases. Use
 
 All models below were trained with the provided code on the 1,000-class v2
 dataset. Accuracy is top-1.
+
+CNX-B and ViT-B are supported by the training and loading code; their benchmark
+rows can be added here once fine-tuned results and released weights are available.
 
 | Model | Best validation accuracy | Test accuracy | Weights |
 |---|---:|---:|---|
