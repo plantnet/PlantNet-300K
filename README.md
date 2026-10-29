@@ -101,6 +101,10 @@ Add `--wandb` to log the run to Weights & Biases. Use
 All models below were trained with the provided code on the 1,000-class v2
 dataset. Accuracy is top-1.
 
+The complete release is available in the
+[Pl@ntNet-300K-v2 Hugging Face collection](https://huggingface.co/collections/PlantNet/plntnet-300k-v2-models).
+The links in the table provide alternate direct checkpoint downloads.
+
 | Model | Best validation accuracy | Test accuracy | Weights |
 |---|---:|---:|---|
 | CNX-T | 0.8248 | 0.8216 | [Download](https://drive.google.com/file/d/1dr3k9_LqME0Gn1P126aBCVo6LFYN8ck0/view?usp=sharing) |
