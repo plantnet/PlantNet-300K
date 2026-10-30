@@ -1,0 +1,3 @@
+.gitignore
+# Local Hugging Face release and publishing files
+/huggingface/

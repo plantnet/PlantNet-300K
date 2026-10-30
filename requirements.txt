@@ -1,0 +1,8 @@
+numpy>=1.24
+pandas>=2.0
+Pillow>=10.0
+torch>=2.5
+torchvision>=0.20
+tqdm>=4.66
+transformers>=4.57.3
+wandb>=0.19

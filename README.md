@@ -1,98 +1,190 @@
 # Pl@ntNet-300K
 
 <p align="middle">
-  <img src="/images/1.jpg" width="180" hspace="2"/>
-  <img src="/images/2.jpg" width="180" hspace="2"/>
-  <img src="/images/3.jpg" width="180" hspace="2"/>
-  <img src="/images/4.jpg" width="180" hspace="2"/>
+  <img src="images/1.jpg" width="180" hspace="2"/>
+  <img src="images/2.jpg" width="180" hspace="2"/>
+  <img src="images/3.jpg" width="180" hspace="2"/>
+  <img src="images/4.jpg" width="180" hspace="2"/>
 </p>
 
-This repository contains the code used to produce the benchmark in the paper ***"Pl@ntNet-300K: a plant image dataset with high label
-ambiguity and a long-tailed distribution"***.
+This repository contains training and inference code for **Pl@ntNet-300K-v2**.
+The current models fine-tune recent [DINOv3](https://arxiv.org/abs/2508.10104)
+ConvNeXt and Vision Transformer backbones, initialized from the LVD-1689M
+pretrained weights. The original Pl@ntNet-300K-v1 benchmark code is preserved
+in [`legacy_v1/`](legacy_v1/).
 
-## Download the dataset
+## Dataset
 
-In order to train a model on the PlantNet-300K dataset, you first have to [download the dataset on Zenodo](https://zenodo.org/record/5645731#.Yuehg3ZBxPY).
+Pl@ntNet-300K-v2 contains **306,087 images from 1,000 plant species**. It retains
+the long-tailed class distribution and high visual ambiguity of the original
+dataset while providing improved images resolution and species names.
 
-## Scientific Publication
+- [Download Pl@ntNet-300K-v2](https://zenodo.org/records/10419064)
+- [Download Pl@ntNet-300K-v1](https://zenodo.org/records/5645731)
+- [Dataset paper](https://openreview.net/forum?id=eLYinD0TtIt)
 
-You can find detailed information about the dataset as well as extensive experiments in the [NeurIPS 2021 paper](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/file/7e7757b1e12abcb736ab9a754ffb617a-Paper-round2.pdf).
-If you use this work for your research, please cite the paper:
+The v2 dataset root must have the following layout:
 
-    @inproceedings{plantnet-300k,
-    author    = {Garcin, Camille and Joly, Alexis and Bonnet, Pierre and Lombardo, Jean-Christophe and Affouard, Antoine and Chouet, Mathias and Servajean, Maximilien and Lorieul, Titouan and Salmon, Joseph},
-    booktitle = {NeurIPS Datasets and Benchmarks 2021},
-    title     = {{Pl@ntNet-300K}: a plant image dataset with high label ambiguity and a long-tailed distribution},
-    year      = {2021},
-    }
-    
-## Overview
-
-Pl@ntNet-300K is a plant dataset containing 306,146 plant images covering 1081 species (the classes).
-Pl@ntNet-300K is characterized by high class ambiguity and strong class imbalance.
-The graph below highlights the long-tailed distribution of the dataset: 80% of species account for only 11% of the total number of images.
-
-<p align="center">
-<img src="images/lorentz_curve.jpg" width="50%">
-</p>
-
-The images are split into a train, val and test set, each containing the following number of images : 
-
-<div align="center">
-
-| Train | Val | Test | Total
-|-----------------|-----------------|-----------------|-----------------|
-| 243,916         | 31,118          | 31,112          | 306,146 |
-
-</div>
-
-### Dataset Version & Meta-data files
-
-Make sure you download the latest version of the dataset in Zenodo (version 1.1 as in the link above, not 1.0).
-The difference lies in the metadata files, the images are the same.
-If you wish to download **ONLY** the metadata files (not possible in Zenodo), you will find them [here](https://lab.plantnet.org/seafile/d/bed81bc15e8944969cf6/).
-The folder contains three files: 
-
-- `plantnet300K_metadata.json`  maps the id of each image with several pieces of information (species id, split, author, license, ...) 
-- `plantnet300K_species_id_2_name.json`, maps the species id and its scientific name
-- `class_idx_to_species_id.json`, maps the class id (from 0 to 1080) to the species id (useful for the pretrained weights)
-
-### Hyperparameters
-
-If you are looking for the hyperparameters used in the paper, you can find them in the [supplementary material](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/7e7757b1e12abcb736ab9a754ffb617a-Abstract-round2.html).
-
-
-### Pre-trained models
-
-You can find the pre-trained models [here](https://lab.plantnet.org/seafile/d/01ab6658dad6447c95ae/).
-To load the pre-trained models, you can simply use the `load_model` function in `utils.py`. For instance, if you want to load the resnet18 weights:
-
-```python
-from utils import load_model
-from torchvision.models import resnet18
-
-filename = 'resnet18_weights_best_acc.tar' # pre-trained model path
-use_gpu = True  # load weights on the gpu
-model = resnet18(num_classes=1081) # 1081 classes in Pl@ntNet-300K
-
-load_model(model, filename=filename, use_gpu=use_gpu)
+```text
+plantnet300kv2/
+├── images/
+│   ├── train/0000/ ... 0999/
+│   ├── val/0000/   ... 0999/
+│   └── test/0000/  ... 0999/
+├── plantnet300K_metadata.csv
+└── species_metadata.csv
 ```
 
-Note that if you want to fine-tune the model on another dataset, you have to change the last layer. You can find examples in the `get_model` function in `utils.py. 
-### Requirements
+`plantnet300K_metadata.csv` associates each image hash with its numerical
+`species_id`, split, author, license, organ, and Pl@ntNet observation. The
+`species_metadata.csv` file maps the 1,000 species identifiers to their
+scientific names, genus, family, and IUCN status. Please respect the per-image
+license and attribution information when reusing images.
 
-Only pytorch, torchvision are necessary for the code to run. 
-If you have installed anaconda, you can run the following command:
+## Installation
 
-```conda env create -f plantnet_300k_env.yml```
+Python 3.10 or newer is recommended.
 
-### Training a model
+```bash
+git clone https://github.com/plantnet/PlantNet-300K.git
+cd PlantNet-300K
+pip install -r requirements.txt
+```
 
-In order to train a model on the PlantNet-300K dataset, run the following command:
+The DINOv3 initialization weights are downloaded from Hugging Face the first
+time an architecture is constructed. They are license-gated: accept the DINOv3
+license on the corresponding model page and authenticate once with
+`hf auth login` before training or loading a model.
 
-```python main.py --lr=0.01 --batch_size=32 --mu=0.0001 --n_epochs=30 --epoch_decay 20 25 --k 1 3 5 10 --model=resnet18 --pretrained --seed=4 --image_size=256 --crop_size=224 --root=path_to_data --save_name_xp=xp1```
+## Fine-tuning
 
- You must provide in the `root` option the path to the train val and test folders (here: `path_to_data`). 
- The `save_name_xp` option is the name of the directory where the weights of the model and the results (metrics) will be stored.
- You can check out the different options in the file `cli.py`.
+For example, train DINOv3 ConvNeXt-Tiny on Pl@ntNet-300K-v2 with:
 
+```bash
+python main.py \
+  --model cnxt \
+  --data_dir /path/to/plantnet300kv2 \
+  --ckpt_dir ./checkpoints
+```
+
+Available architectures are:
+
+| CLI name | Architecture | DINOv3 initialization |
+|---|---|---|
+| `cnxt` | ConvNeXt-Tiny | `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` |
+| `cnxs` | ConvNeXt-Small | `facebook/dinov3-convnext-small-pretrain-lvd1689m` |
+| `cnxb` | ConvNeXt-Base | `facebook/dinov3-convnext-base-pretrain-lvd1689m` |
+| `vits` | ViT-S/16 | `facebook/dinov3-vits16-pretrain-lvd1689m` |
+| `vitsplus` | ViT-S+/16 | `facebook/dinov3-vits16plus-pretrain-lvd1689m` |
+| `vitb` | ViT-B/16 | `facebook/dinov3-vitb16-pretrain-lvd1689m` |
+
+The main options are:
+
+| Argument | Default | Description |
+|---|---:|---|
+| `--data_dir` | required | Pl@ntNet-300K-v2 root |
+| `--model` | required | One of `cnxt`, `cnxs`, `cnxb`, `vits`, `vitsplus`, or `vitb` |
+| `--ckpt_dir` | `./checkpoints` | Checkpoint output directory |
+| `--device` | `cuda` | Training device |
+| `--batch_size` | `256` | Batch size |
+| `--num_workers` | `32` | Data-loading workers |
+| `--epochs` | `30` | Fine-tuning epochs |
+
+Additional optimization, augmentation, evaluation, and logging arguments are
+documented in [`args.py`](args.py).
+
+Add `--wandb` to log the run to Weights & Biases. Use
+`--wandb_projname`, `--wandb_entity`, and `--wandb_tmpdir` to configure it.
+
+## Fine-tuned models
+
+All models below were trained with the provided code on the 1,000-class v2
+dataset. Accuracy is top-1.
+
+The complete release is available in the
+[Pl@ntNet-300K-v2 Hugging Face collection](https://huggingface.co/collections/PlantNet/plntnet-300k-v2-models).
+The links in the table provide alternate direct checkpoint downloads.
+
+| Model | Best validation accuracy | Test accuracy | Weights |
+|---|---:|---:|---|
+| CNX-T | 0.8248 | 0.8216 | [Download](https://drive.google.com/file/d/1dr3k9_LqME0Gn1P126aBCVo6LFYN8ck0/view?usp=sharing) |
+| CNX-S | 0.8303 | 0.8296 | [Download](https://drive.google.com/file/d/1PfqwoK3siBHDxojWaUnD3_VAb32s4lQc/view?usp=sharing) |
+| CNX-B | 0.8358 | 0.8331 | [Download](https://drive.google.com/file/d/1wWmKvqqr34tR8HdbkrGJmwbjfXXATkPM/view?usp=sharing) |
+| ViT-S | 0.8296 | 0.8297 | [Download](https://drive.google.com/file/d/1lnmhQzbbivsaBy80AQzFVITlDP-KaV5N/view?usp=sharing) |
+| ViT-S+ | 0.8328 | 0.8293 | [Download](https://drive.google.com/file/d/1NyCElv_iN-0Ztb3seSm4SiCTN4Oz3js_/view?usp=sharing) |
+| ViT-B | **0.8462** | **0.8457** | [Download](https://drive.google.com/file/d/1b2mi-NlKHlIeNsKaWKgrLCEx3Z2KaEV2/view?usp=sharing) |
+
+## Loading a model and extracting embeddings
+
+`load_model` constructs the requested DINOv3 architecture, loads a fine-tuned
+checkpoint, moves it to the selected device, and enables evaluation mode. A
+forward pass returns both the image embedding and the 1,000 classifier logits.
+
+```python
+from pathlib import Path
+
+import pandas as pd
+import torch
+from PIL import Image
+
+from model import load_model
+from transforms import ValTransform
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+data_dir = Path("/path/to/plantnet300kv2")
+model = load_model("cnxt", "/path/to/plantnet300kv2_cnxt.pth", device=device)
+transform = ValTransform()
+
+image = transform(Image.open("images/1.jpg").convert("RGB"))
+images = image.unsqueeze(0).to(device)
+
+with torch.inference_mode():
+    embeddings, logits = model(images)
+
+predicted_species_id = logits.argmax(dim=1).item()
+species_metadata = pd.read_csv(data_dir / "species_metadata.csv")
+species_name = species_metadata.loc[
+    species_metadata["species_id"] == predicted_species_id,
+    "full_species",
+].item()
+
+print(f"Predicted species: {species_name} (ID: {predicted_species_id:04d})")
+```
+
+The outputs are also named, so `output.embeddings` and `output.logits` can be
+used instead of tuple unpacking. Class indices follow sorted `species_id` order;
+for v2 this is `0000` through `0999`. Use `species_metadata.csv` to recover the
+corresponding species name.
+
+## Citation
+
+For the Pl@ntNet-300K dataset, please cite:
+
+```bibtex
+@inproceedings{plantnet-300k,
+  author    = {Garcin, Camille and Joly, Alexis and Bonnet, Pierre and
+               Lombardo, Jean-Christophe and Affouard, Antoine and
+               Chouet, Mathias and Servajean, Maximilien and
+               Lorieul, Titouan and Salmon, Joseph},
+  booktitle = {NeurIPS Datasets and Benchmarks 2021},
+  title     = {{Pl@ntNet-300K}: a plant image dataset with high label
+               ambiguity and a long-tailed distribution},
+  year      = {2021}
+}
+```
+
+For the training configuration, please cite:
+
+```bibtex
+@misc{moummad2026,
+  title         = {Energy-Efficient Plant Monitoring via Knowledge Distillation},
+  author        = {Ilyass Moummad and Reda Bensaid and Kawtar Zaher and
+                   Hervé Goëau and Jean-Christophe Lombardo and Joseph Salmon and
+                   Pierre Bonnet and Alexis Joly},
+  year          = {2026},
+  eprint        = {2604.27178},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2604.27178}
+}
+```
